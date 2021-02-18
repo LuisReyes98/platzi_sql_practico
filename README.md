@@ -464,7 +464,7 @@ FROM (
 WHERE row_id = 1;
 ```
 
-Extraer los primeros 5 registros de la tabla usando los metodos anteriores
+Reto Extraer los primeros 5 registros de la tabla usando los metodos anteriores
 
 ```SQL
 SELECT *
