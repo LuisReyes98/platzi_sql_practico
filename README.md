@@ -440,7 +440,9 @@ SELECT TOP 1500
 FROM tabla_diaria;
 ```
 
-## Ejercicio El primero
+## Ejercicios
+
+### El primero
 
 Extraer el primer registro de una tabla
 
@@ -481,4 +483,131 @@ FROM (
   FROM alumnos
 ) AS alumnos_with_row_num
 WHERE row_id BETWEEN 1 AND 5;
+```
+
+### El segundo más alto
+
+Buscar la segunda colegiatura mas alta de todos los alumnos
+
+```sql
+SELECT DISTINCT colegiatura
+FROM alumnos AS a1
+WHERE 2 = (
+  SELECT COUNT( DISTINCT colegiatura) FROM alumnos AS a2
+  WHERE a1.colegiatura <= a2.colegiatura
+);
+
+SELECT DISTINCT colegiatura
+FROM alumnos
+ORDER BY colegiatura DESC
+LIMIT 1 OFFSET 1;
+
+-- para un tutor especifico
+SELECT DISTINCT colegiatura
+FROM alumnos
+WHERE tutor_id = 20
+ORDER BY colegiatura DESC
+LIMIT 1 OFFSET 1;
+
+-- todos los alumnos que coinciden con la colegiatura del segundo quey
+SELECT *
+FROM alumnos AS datos_alumnos
+INNER JOIN (
+  SELECT DISTINCT colegiatura
+  FROM alumnos
+  WHERE tutor_id = 20
+  ORDER BY colegiatura DESC
+  LIMIT 1 OFFSET 1
+) AS segunda_mayor_colegiatura
+ON datos_alumnos.colegiatura = segunda_mayor_colegiatura.colegiatura;
+
+SELECT *
+FROM alumnos AS datos_alumnos
+WHERE colegiatura = (
+  SELECT DISTINCT colegiatura
+  FROM alumnos
+  WHERE tutor_id = 20
+  ORDER BY colegiatura DESC
+  LIMIT 1 OFFSET 1
+);
+
+```
+
+Reto traer la segunda mitad de los registros de la tabla de alumnos
+
+```sql
+-- total de registros
+SELECT COUNT(id) FROM alumnos;
+
+-- la mitad de los registros
+SELECT COUNT(id)/2 AS num FROM alumnos;
+
+
+-- Trae la segunda mitad si es del ultimo a al medio
+SELECT *
+FROM alumnos
+ORDER BY id DESC
+LIMIT (SELECT COUNT(id)/2 AS num FROM alumnos);
+
+-- Trae la segunda mitad de los registros
+-- del medio al ultimo
+SELECT *
+FROM alumnos
+ORDER BY id ASC
+LIMIT (SELECT COUNT(id)/2 AS num FROM alumnos)
+OFFSET (SELECT COUNT(id)/2 AS num FROM alumnos);
+
+SELECT *
+FROM alumnos
+ORDER BY id ASC
+OFFSET (SELECT COUNT(id)/2 AS num FROM alumnos);
+```
+
+```sql
+SELECT ROW_NUMBER() OVER() AS row_id, *
+FROM alumnos
+OFFSET(
+  SELECT COUNT(*) / 2
+  FROM alumnos
+);
+```
+
+### Seleccionar de un set de opciones
+
+```sql
+SELECT *
+FROM (
+  SELECT ROW_NUMBER() OVER() AS row_id, *
+  FROM alumnos
+) AS alumnos_with_row_num
+WHERE row_id IN (1,5,10,15,20);
+
+SELECT *
+FROM alumnos
+WHERE id IN (
+  SELECT id
+  FROM alumnos
+  WHERE tutor_id = 30
+);
+
+SELECT *
+FROM alumnos
+WHERE id IN (
+  SELECT id
+  FROM alumnos
+  WHERE tutor_id = 30
+    AND carrera_id = 31
+);
+```
+
+Reto seleccionar valores de los alumnos que no se encuentran en la lista
+
+```sql
+SELECT *
+FROM alumnos
+WHERE id NOT IN (
+  SELECT id
+  FROM alumnos
+  WHERE tutor_id = 30
+);
 ```
