@@ -442,7 +442,7 @@ FROM tabla_diaria;
 
 ## Ejercicios
 
-### El primero
+## El primero
 
 Extraer el primer registro de una tabla
 
@@ -485,7 +485,7 @@ FROM (
 WHERE row_id BETWEEN 1 AND 5;
 ```
 
-### El segundo más alto
+## El segundo más alto
 
 Buscar la segunda colegiatura mas alta de todos los alumnos
 
@@ -572,7 +572,7 @@ OFFSET(
 );
 ```
 
-### Seleccionar de un set de opciones
+## Seleccionar de un set de opciones
 
 ```sql
 SELECT *
@@ -610,4 +610,75 @@ WHERE id NOT IN (
   FROM alumnos
   WHERE tutor_id = 30
 );
+```
+
+## En mis tiempos
+
+```sql
+-- el EXTRACT parace ser mas performante que el DATE_PART
+
+SELECT EXTRACT(YEAR FROM fecha_incorporacion) AS year_incorporation
+FROM alumnos;
+
+
+SELECT DATE_PART('YEAR', fecha_incorporacion) AS year_incorporation
+FROM alumnos;
+
+SELECT DATE_PART('YEAR', fecha_incorporacion) AS year_incorporation,
+  DATE_PART('MONTH', fecha_incorporacion) AS month_incorporation,
+  DATE_PART('DAY', fecha_incorporacion) AS day_incorporation
+FROM alumnos;
+```
+
+Reto agregar hora, minutos y segundos a las queries anteriores
+
+```sql
+
+
+SELECT DATE_PART('YEAR', fecha_incorporacion) AS year_incorporation,
+  DATE_PART('MONTH', fecha_incorporacion) AS month_incorporation,
+  DATE_PART('DAY', fecha_incorporacion) AS day_incorporation,
+  DATE_PART('HOUR', fecha_incorporacion) AS hour_incorporation,
+  DATE_PART('MINUTE', fecha_incorporacion) AS minute_incorporation,
+  DATE_PART('SECOND', fecha_incorporacion) AS second_incorporation
+FROM alumnos;
+
+SELECT EXTRACT(YEAR FROM fecha_incorporacion) AS year_incorporation,
+  EXTRACT(MONTH FROM fecha_incorporacion) AS month_incorporation,
+  EXTRACT(DAY FROM fecha_incorporacion) AS day_incorporation,
+  EXTRACT(HOUR FROM fecha_incorporacion) AS hour_incorporation,
+  EXTRACT(MINUTE FROM fecha_incorporacion) AS minute_incorporation,
+  EXTRACT(SECOND FROM fecha_incorporacion) AS second_incorporation
+FROM alumnos;
+```
+
+## Seleccionar por año
+
+```SQL
+SELECT *
+FROM alumnos
+WHERE (EXTRACT(YEAR FROM fecha_incorporacion)) = 2019;
+
+
+SELECT *
+FROM alumnos
+WHERE (DATE_PART('YEAR', fecha_incorporacion)) = 2018;
+
+SELECT *
+FROM (
+  SELECT *,
+    DATE_PART('YEAR', fecha_incorporacion) as year_incorporation
+  FROM alumnos
+) as alumnos_con_year
+WHERE year_incorporation = 2020;
+```
+
+Reto extraer los alumnos que se incorporaron en un año y un mes especifico
+
+```sql
+-- MAYO 2018
+SELECT *
+FROM alumnos
+WHERE (DATE_PART('YEAR', fecha_incorporacion)) = 2018
+  AND (DATE_PART('MONTH', fecha_incorporacion)) = 5;
 ```
