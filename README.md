@@ -682,3 +682,200 @@ FROM alumnos
 WHERE (DATE_PART('YEAR', fecha_incorporacion)) = 2018
   AND (DATE_PART('MONTH', fecha_incorporacion)) = 5;
 ```
+
+## Duplicados
+
+```sql
+-- duplicado en base al id
+SELECT *
+FROM alumnos as ou
+WHERE (
+  SELECT COUNT(*)
+  FROM alumnos AS inr
+  WHERE ou.id = inr.id
+) > 1;
+
+-- contea la combinacion de todos los campos separados por comas para saber cuantos valores duplicados hay, aunque como se considera el id tampoco muestra los duplicados con id diferente
+SELECT (alumnos.*)::text, COUNT(*)
+FROM alumnos
+GROUP BY alumnos.*
+HAVING COUNT(*) > 1;
+
+
+-- verificando los duplicados correctamente ya que evalua todos los campos menos el id
+SELECT (
+  alumnos.nombre,
+  alumnos.apellido,
+  alumnos.email,
+  alumnos.colegiatura,
+  alumnos.fecha_incorporacion,
+  alumnos.carrera_id,
+  alumnos.tutor_id
+)::text, COUNT(*)
+FROM alumnos
+GROUP BY alumnos.nombre,
+  alumnos.apellido,
+  alumnos.email,
+  alumnos.colegiatura,
+  alumnos.fecha_incorporacion,
+  alumnos.carrera_id,
+  alumnos.tutor_id
+HAVING COUNT(*) > 1;
+
+
+SELECT *
+FROM (
+  SELECT id,
+  ROW_NUMBER() OVER(
+    PARTITION BY
+      nombre,
+      apellido,
+      email,
+      colegiatura,
+      fecha_incorporacion,
+      carrera_id,
+      tutor_id
+    ORDER BY id ASC
+    ) AS row,
+    *
+    FROM alumnos
+  ) AS duplicados
+WHERE duplicados.row > 1
+```
+
+Reto usando la query anterior borrar los registros Duplicados
+
+```sql
+-- CANTIDAD DE Duplicados menos 1
+SELECT COUNT(*) - 1 as num FROM alumnos WHERE id IN (SELECT id
+  FROM (
+    SELECT
+    ROW_NUMBER() OVER(
+    PARTITION BY
+      nombre,
+      apellido,
+      email,
+      colegiatura,
+      fecha_incorporacion,
+      carrera_id,
+      tutor_id
+    ORDER BY id ASC
+    ) AS row,
+    *
+    FROM alumnos
+    ) AS duplicados
+  WHERE duplicados.row > 1
+)
+
+-- borrando todos los duplicados
+DROP FROM alumnos WHERE id IN (SELECT id
+FROM (
+  SELECT
+  ROW_NUMBER() OVER(
+    PARTITION BY
+      nombre,
+      apellido,
+      email,
+      colegiatura,
+      fecha_incorporacion,
+      carrera_id,
+      tutor_id
+    ORDER BY id ASC
+    ) AS row,
+    *
+    FROM alumnos
+  ) AS duplicados
+WHERE duplicados.row > 1;
+
+
+-- borrando todos los de id null
+DELETE FROM alumnos WHERE id IS NULL;
+
+-- TODOS los ids de los duplicados menos 1
+SELECT id FROM alumnos WHERE id IN (SELECT id
+  FROM (
+    SELECT
+    ROW_NUMBER() OVER(
+    PARTITION BY
+      nombre,
+      apellido,
+      email,
+      colegiatura,
+      fecha_incorporacion,
+      carrera_id,
+      tutor_id
+    ORDER BY id ASC
+    ) AS row,
+    *
+    FROM alumnos
+    ) AS duplicados
+  WHERE duplicados.row > 1
+) LIMIT (SELECT COUNT(*) - 1 as num
+  FROM alumnos
+  WHERE id IN (SELECT id
+  FROM (
+    SELECT
+    ROW_NUMBER() OVER(
+    PARTITION BY
+      nombre,
+      apellido,
+      email,
+      colegiatura,
+      fecha_incorporacion,
+      carrera_id,
+      tutor_id
+    ORDER BY id ASC
+    ) AS row,
+    *
+    FROM alumnos
+    ) AS duplicados
+  WHERE duplicados.row > 1
+))
+
+-- borrando todos los duplicados menos 1 es decir el original
+DELETE FROM alumnos WHERE ctid IN (
+  SELECT ctid
+FROM alumnos
+WHERE id IN (SELECT id
+  FROM (
+    SELECT
+    ROW_NUMBER() OVER(
+    PARTITION BY
+      nombre,
+      apellido,
+      email,
+      colegiatura,
+      fecha_incorporacion,
+      carrera_id,
+      tutor_id
+    ORDER BY id ASC
+    ) AS row,
+    *
+    FROM alumnos
+    ) AS duplicados
+  WHERE duplicados.row > 1
+) LIMIT (SELECT COUNT(*) - 1 as num
+  FROM alumnos
+  WHERE id IN (SELECT id
+  FROM (
+    SELECT
+    ROW_NUMBER() OVER(
+    PARTITION BY
+      nombre,
+      apellido,
+      email,
+      colegiatura,
+      fecha_incorporacion,
+      carrera_id,
+      tutor_id
+    ORDER BY id ASC
+    ) AS row,
+    *
+    FROM alumnos
+    ) AS duplicados
+  WHERE duplicados.row > 1
+))
+)
+-- nota ctid es un identificador transaccional de postgreSQL cada fila posee uno unico pero cambia tras una transaccion o actulizacion, funciona para identificar filas durante una transaccion pero para identificacion logica y a largo plazo se deben usar los ids
+
+```
