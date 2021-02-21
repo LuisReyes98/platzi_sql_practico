@@ -879,3 +879,153 @@ WHERE id IN (SELECT id
 -- nota ctid es un identificador transaccional de postgreSQL cada fila posee uno unico pero cambia tras una transaccion o actulizacion, funciona para identificar filas durante una transaccion pero para identificacion logica y a largo plazo se deben usar los ids
 
 ```
+
+## Selectores de rango
+
+```SQL
+SELECT *
+FROM alumnos
+WHERE tutor_id IN (1,2,3,4);
+
+SELECT * FROM alumnos
+WHERE tutor_id >= 1
+  AND tutor_id <= 10;
+
+SELECT *
+FROM alumnos
+WHERE tutor_id BETWEEN 1 AND 10;
+
+--  rango de 10 a 20 , se encuentra el 3 ? booleano
+SELECT int4range(10,20) @> 3;
+
+-- se solapan los rangos? booleano
+SELECT numrange(11.1, 22.2) && numrange(20.0, 30.0);
+
+-- el valor mayor del rango
+SELECT UPPER(int8range(15,25));
+
+-- El valor menor del rango
+SELECT LOWER(int8range(15,25));
+
+-- retorna un rango conformado por los limites superior e inferior de en donde los rangos se intersectan
+SELECT int4range(10, 20) * int4range(15,25);
+
+-- True si el rango esta vacio
+SELECT ISEMPTY(numrange(1,5));
+
+-- los tutor_id cuyos valor este entre el rango de 10 y 20
+SELECT *
+FROM alumnos
+WHERE int4range(10,20) @> tutor_id
+```
+
+RETO, interseccion entre los ids de tutores y los id de carreras
+
+```SQL
+SELECT NUMRANGE(
+  (SELECT MIN(tutor_id) FROM alumnos),
+  (SELECT MAX(tutor_id) FROM alumnos)
+) * NUMRANGE(
+  (SELECT MIN(carrera_id) FROM alumnos),
+  (SELECT MAX(carrera_id) FROM alumnos)
+)
+```
+
+## Eres lo máximo
+
+```SQL
+
+-- fecha de incorporacion mas reciente
+SELECT fecha_incorporacion
+FROM alumnos
+ORDER BY fecha_incorporacion DESC
+LIMIT 1
+
+-- al agrupar con las carreras trae todos los registros lo cual no es util
+SELECT carrera_id, fecha_incorporacion
+FROM alumnos
+GROUP BY carrera_id, fecha_incorporacion
+ORDER BY fecha_incorporacion DESC;
+
+-- agrupando por carreras con la fecha de incorporacion mas reciente
+SELECT carrera_id,
+  MAX(fecha_incorporacion)
+FROM alumnos
+GROUP BY carrera_id
+ORDER BY carrera_id;
+```
+
+Reto traer el minimo nombre alfabeticamente
+
+```sql
+SELECT nombre
+FROM alumnos
+ORDER BY nombre ASC
+LIMIT 1;
+
+SELECT MIN(nombre)
+FROM alumnos;
+```
+
+y el minimo por id de tutor
+
+```sql
+SELECT tutor_id, MIN(nombre)
+FROM alumnos
+GROUP BY tutor_id;
+
+SELECT tutor_id, MIN(nombre)
+FROM alumnos
+GROUP BY tutor_id
+ORDER BY tutor_id;
+```
+
+## Egoísta (selfish)
+
+```sql
+-- Self join
+SELECT a.nombre,
+  a.apellido,
+  t.nombre,
+  t.apellido
+FROM alumnos AS a
+  INNER JOIN alumnos AS t
+  ON a.tutor_id = t.id;
+
+SELECT CONCAT(a.nombre, ' ', a.apellido) AS alumno,
+  CONCAT(t.nombre, t.apellido) AS tutor
+FROM alumnos AS a
+  INNER JOIN alumnos AS t
+  ON a.tutor_id = t.id;
+
+SELECT CONCAT(t.nombre, t.apellido) AS tutor,
+  COUNT(*) AS alumnos_por_tutor
+FROM alumnos AS a
+  INNER JOIN alumnos AS t
+  ON a.tutor_id = t.id
+GROUP BY tutor
+ORDER BY alumnos_por_tutor DESC;
+
+-- TOP 10
+SELECT CONCAT(t.nombre, t.apellido) AS tutor,
+  COUNT(*) AS alumnos_por_tutor
+FROM alumnos AS a
+  INNER JOIN alumnos AS t
+  ON a.tutor_id = t.id
+GROUP BY tutor
+ORDER BY alumnos_por_tutor DESC
+LIMIT 10;
+```
+
+Reto promedio de alumnos por tutor
+
+```sql
+SELECT AVG(alumnos_por_tutor) FROM
+(SELECT CONCAT(t.nombre, t.apellido) AS tutor,
+  COUNT(*) AS alumnos_por_tutor
+FROM alumnos AS a
+  INNER JOIN alumnos AS t
+  ON a.tutor_id = t.id
+GROUP BY tutor
+ORDER BY alumnos_por_tutor DESC) AS promedio;
+```
