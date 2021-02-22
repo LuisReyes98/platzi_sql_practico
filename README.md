@@ -1020,7 +1020,7 @@ LIMIT 10;
 Reto promedio de alumnos por tutor
 
 ```sql
-SELECT AVG(alumnos_por_tutor) FROM
+SELECT AVG(alumnos_por_tutor) AS promedio_alumnos_por_tutor FROM
 (SELECT CONCAT(t.nombre, t.apellido) AS tutor,
   COUNT(*) AS alumnos_por_tutor
 FROM alumnos AS a
@@ -1028,4 +1028,151 @@ FROM alumnos AS a
   ON a.tutor_id = t.id
 GROUP BY tutor
 ORDER BY alumnos_por_tutor DESC) AS promedio;
+```
+
+## Resolviendo diferencias
+
+```sql
+-- alumnos por carreras
+SELECT carrera_id, COUNT(*) AS cuenta
+FROM alumnos
+GROUP BY carrera_id
+ORDER BY cuenta DESC;
+
+-- left join exclusive
+-- todos los alumnos cuya carrera ya no existe
+SELECT 	a.nombre,
+    a.apellido,
+    a.carrera_id,
+    c.id,
+    c.carrera
+FROM alumnos AS a
+  LEFT JOIN carreras AS c
+  ON a.carrera_id = c.id
+WHERE c.id IS NULL
+ORDER BY a.carrera_id;
+```
+
+RETO realizar el left join mostrando los datos de toda la tabla alumnos
+
+```sql
+
+-- todos los alumnos con carrera y el nombre de sus carreras
+SELECT a.nombre,
+    a.apellido,
+    a.carrera_id,
+    c.id,
+    c.carrera
+FROM alumnos AS a
+  INNER JOIN carreras AS c
+  ON a.carrera_id = c.id
+ORDER BY a.carrera_id;
+
+-- todos los alumnos con y sin carrera y sus carreras
+SELECT a.nombre,
+    a.apellido,
+    a.carrera_id,
+    c.id,
+    c.carrera
+FROM alumnos AS a
+  LEFT JOIN carreras AS c
+  ON a.carrera_id = c.id
+ORDER BY a.carrera_id;
+
+-- todos los alumnos con y sin carrera y todas las carreras incluso las que no tienen alumnos
+SELECT a.nombre,
+    a.apellido,
+    a.carrera_id,
+    c.id,
+    c.carrera
+FROM alumnos AS a
+  FULL OUTER JOIN carreras AS c
+  ON a.carrera_id = c.id
+ORDER BY a.carrera_id;
+```
+
+## Todas las uniones
+
+```sql
+
+-- FULL OUTER JOIN
+SELECT a.nombre,
+  a.apellido,
+  a.carrera_id,
+  c.id,
+  c.carrera
+FROM alumnos AS a
+  FULL OUTER JOIN carreras AS c
+  ON a.carrera_id = c.id
+ORDER BY c.id DESC;
+
+-- INNER JOIN
+SELECT a.nombre,
+  a.apellido,
+  a.carrera_id,
+  c.id,
+  c.carrera
+FROM alumnos AS a
+  INNER JOIN carreras AS c
+  ON a.carrera_id = c.id
+ORDER BY c.id DESC;
+
+-- LEFT JOIN
+SELECT a.nombre,
+  a.apellido,
+  a.carrera_id,
+  c.id,
+  c.carrera
+FROM alumnos AS a
+  LEFT JOIN carreras AS c
+  ON a.carrera_id = c.id
+ORDER BY c.id DESC;
+
+-- LEFT JOIN EXCLUSIVO
+SELECT a.nombre,
+  a.apellido,
+  a.carrera_id,
+  c.id,
+  c.carrera
+FROM alumnos AS a
+  LEFT JOIN carreras AS c
+  ON a.carrera_id = c.id
+WHERE c.id IS NULL;
+
+-- right join
+SELECT a.nombre,
+  a.apellido,
+  a.carrera_id,
+  c.id,
+  c.carrera
+FROM alumnos AS a
+  RIGHT JOIN carreras AS c
+  ON a.carrera_id = c.id
+ORDER BY c.id DESC;
+
+-- right join exclusivo
+SELECT a.nombre,
+  a.apellido,
+  a.carrera_id,
+  c.id,
+  c.carrera
+FROM alumnos AS a
+  RIGHT JOIN carreras AS c
+  ON a.carrera_id = c.id
+WHERE a.id IS NULL
+ORDER BY c.id DESC;
+
+-- diferencia simetrica
+SELECT a.nombre,
+  a.apellido,
+  a.carrera_id,
+  c.id,
+  c.carrera
+FROM alumnos AS a
+  FULL OUTER JOIN carreras AS c
+  ON a.carrera_id = c.id
+WHERE a.id IS NULL
+ OR c.id IS NULL
+ORDER BY a.carrera_id DESC
+  ,c.id DESC;
 ```
