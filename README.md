@@ -1176,3 +1176,144 @@ WHERE a.id IS NULL
 ORDER BY a.carrera_id DESC
   ,c.id DESC;
 ```
+
+## Triangulando
+
+```sql
+-- da un padding left que contenga el primer string, con n de largo del string
+-- y los espacios faltantes los rellena con '*'
+SELECT LPAD('sql', 15, '*');
+
+SELECT LPAD('*', id, '*')
+FROM alumnos
+WHERE id < 10;
+
+SELECT LPAD('*', id, '*')
+FROM alumnos
+LIMIT 100;
+
+SELECT LPAD('*', id, '*')
+FROM alumnos
+WHERE id < 10
+ORDER BY carrera_id;
+
+
+SELECT LPAD('*', CAST(row_id AS int), '*')
+FROM (
+  SELECT ROW_NUMBER() OVER() AS row_id, *
+  FROM alumnos
+) AS alumnos_with_row_id
+WHERE row_id <= 5;
+
+SELECT LPAD('h', CAST(row_id AS int), '*')
+FROM (
+  SELECT ROW_NUMBER() OVER(ORDER BY carrera_id) AS row_id, *
+  FROM alumnos
+) AS alumnos_with_row_id
+WHERE row_id <= 5
+ORDER BY carrera_id;
+
+
+SELECT RPAD('h', CAST(row_id AS int), '*')
+FROM (
+  SELECT ROW_NUMBER() OVER(ORDER BY carrera_id) AS row_id, *
+  FROM alumnos
+) AS alumnos_with_row_id
+WHERE row_id <= 5
+ORDER BY carrera_id;
+```
+
+## Generando rangos
+
+```sql
+-- SERIE QUE VA DEL 1 AL 4
+SELECT *
+FROM GENERATE_SERIES(1,4)
+
+
+SELECT *
+FROM GENERATE_SERIES(1,4);
+
+SELECT *
+FROM GENERATE_SERIES(5,4);
+
+-- GENERATE_SERIES(Inicio , final , paso)
+SELECT *
+FROM GENERATE_SERIES(5,1, -2);
+
+
+
+SELECT *
+FROM GENERATE_SERIES(4,3,1);
+
+SELECT *
+FROM GENERATE_SERIES(3,4, -1);
+
+SELECT *
+FROM GENERATE_SERIES(1.1,4, 1.3);
+
+SELECT *
+FROM GENERATE_SERIES(1.1,4, 1.3) AS s(a);
+
+SELECT current_date + s.a AS dates
+FROM generate_series(0,14,7) AS s(a);
+
+-- serie de fechas
+SELECT *
+FROM generate_series('2020-09-01 00:00:00'::timestamp,
+          '2020-09-04 12:00:00'::timestamp, '10 hours');
+
+SELECT a.id ,
+  a.nombre,
+  a.apellido,
+  a.carrera_id,
+  s.a
+FROM alumnos AS a
+  INNER JOIN generate_series(0, 10) AS s(a)
+  ON s.a = a.carrera_id
+ORDER BY a.carrera_id;
+
+```
+
+Reto hacer el triangulo de padding con un rango generado
+
+```sql
+SELECT LPAD('h', a, '*')
+FROM generate_series(0, 15) AS s(a);
+```
+
+## Regularizando expresiones
+
+```sql
+/**
+  * RETO: Resuelve el triángulo con generate_series
+  */
+SELECT  lpad ('*', generate_series, '*')
+FROM    generate_series(1,10);
+
+-- Generate independent ordinality --
+SELECT  *
+FROM    generate_series(1,10) WITH ordinality;
+
+-- Use ordinality for lpad --
+SELECT  lpad('*', CAST(ordinality AS int), '*')
+FROM    generate_series(1,10) WITH ordinality;
+
+-- Probando en series distintas --
+SELECT  lpad('*', CAST(ordinality AS int), '*')
+FROM    generate_series(10,2, -2) WITH ordinality;
+
+```
+
+validando strings con expresiones regulares
+
+```sql
+SELECT email
+FROM alumnos
+WHERE email ~*'[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}'
+
+-- todos los email con alguna terminacion de google
+SELECT email
+FROM alumnos
+WHERE email ~*'[A-Z0-9._%+-]+@google[A-Z0-9.-]+\.[A-Z]{2,4}';
+```
