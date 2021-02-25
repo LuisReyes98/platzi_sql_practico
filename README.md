@@ -35,7 +35,9 @@ Las relaciones en álgebra relacional se refiere a una tabla.
 ⠀
 Tipos de operadores
 Operadores unarios.- Requiere una relación o tabla para funcionar.
+
 - Proyección (π): Equivale al comando Select. Saca un número de columnas o atributos sin necesidad de hacer una unión con una segunda tabla.
+
 π<Nombre, Apellido, Email>(Tabla_Alumno)
 ⠀
 - Selección (σ): Equivale al comando Where. Consiste en el filtrado de de tuplas.
@@ -386,7 +388,7 @@ Un indice vale la pena utilizarse cuando se lee mucho en una tablay se escribe p
 
 ## Agregación y limitantes (GROUP BY y LIMIT)
 
-Agregación y limitantes GROUP BYyLIMIT(SELECT TOP porque no existe LIMIT en SQL)
+Funciones de Agregación y limitantes GROUP BY y LIMIT(SELECT TOP porque no existe LIMIT en MySQL)
 
 GROUP BY es una sentencia que agrupa filas que tienen el mismo valor en columnas con el sumatorio.
 Como decirle ‘encuentra el número de clientes en cada país’.
@@ -1396,9 +1398,9 @@ Cuando tenemos grandes volúmenes de información estática que representa un pr
 
 ### Inconvenientes
 
-Cuando debamos hacer joins frecuentemente entre shards
-Baja elasticidad. Los shards crecen de forma irregular unos más que otros y vuelve a ser necesario usar sharding (subsharding)
-La llave primaria pierde utilidad
+- Cuando debamos hacer joins frecuentemente entre shards
+- Baja elasticidad. Los shards crecen de forma irregular unos más que otros y vuelve a ser necesario usar sharding (subsharding)
+- La llave primaria pierde utilidad
 
 ## Window functions
 
@@ -1507,3 +1509,4 @@ ORDER BY carrera_id, colegiatura_rank;
 
 ## El futuro de SQL
 
+SQL como lenguaje tiene un  gran futuro por delante y nuevos manejadores de bases de datos utilizan un lenguage similar al SQL por lo cual aprender SQL sigue siendo fundamental en la peticion de datos.
