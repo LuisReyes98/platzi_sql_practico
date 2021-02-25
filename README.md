@@ -1317,3 +1317,193 @@ SELECT email
 FROM alumnos
 WHERE email ~*'[A-Z0-9._%+-]+@google[A-Z0-9.-]+\.[A-Z]{2,4}';
 ```
+
+## Bases de datos distribuidas
+
+Resumen:
+Las bases de datos distribuidas: es una colección de múltiples bases de datos separadas físicamente que se comunican mediante una red informática.
+
+VENTAJAS:
+
+-desarrollo modular.
+-incrementa la confiabilidad.
+-mejora el rendimiento.
+-mayor disponibilidad.
+-rapidez de respuesta.
+
+DESVENTAJAS:
+
+-Manejo de seguridad.
+-complejidad de procesamiento.
+-Integridad de datos más compleja.
+-Costo.
+
+TIPOS:
+
+Homogéneas: mismo tipo de BD, manejador y sistema operativo. (aunque esté distribuida).
+Heterogénea: puede que varíen alguna de los anteriores características.
+-OS
+-Sistema de bases de datos.
+-Modelo de datos.
+
+ARQUITECTURAS:
+-** cliente- servidor**: donde hay una BD principal y tiene varias BD que sirven como clientes o como esclavas que tratarán de obtener datos de la principal, a la que normalmente se hacen las escrituras.
+
+Par a par (peer 2 peer): donde todos los puntos en la red de bd son iguales y se hablan como iguales sin tener que responder a una sola entidad.
+multi manejador de bases de datos.
+ESTRATEGIA DE DISEÑO:
+
+top down: es cuando planeas muy bien la BD y la vas configurando de arriba hacia abajo de acuerdo a tus necesidades.
+bottom up: ya existe esa BD y tratas de construir encima.
+ALMACENAMIENTO DISTRIBUIDO:
+
+-Fragmentación: qué datos van en dónde.
+
+fragmentación horizontal: (sharding) partir la tabla que estás utilizando en diferentes pedazos horizontales.
+
+fragmentación vertical: cuando parto por columnas.
+
+fragmentación mixta: cuando tienes algunas columnas y algunos datos en un lugar y algunas columnas y algunas tuplas en otro lugar.
+
+-Replicación: tienes los mismos datos en todas ala BBDD no importa donde estén.
+
+-replicación completa: cuando toda al BD está en varias versiones a lo largo del globo, toda la información está igualita en todas las instancias de BD.
+-replicación parcial: cuando algunos datos están replicados y compartidos en varias zonas geográficas
+-sin replicación: no estás replicando nada de los datos, cada uno está completamente separa y no tienen que estarse hablando para sincronizar datos entre ellas.
+
+DISTRIBUCIÓN DE DATOS:
+
+-Distribución: cómo va a pasar la data entre una BD y otra. Tiene que ver mucho con networking, tiempos, latencia, etc. Pueden ser:
+
+Centralizada: cuando la distribuyes des un punto central a todas las demás
+Particionada: está partida en cada una de las diversas zonas geográficas y se comparten información entre ellas.
+Replicada: tener la misma información en todas y entre ellas se hablan para siempre tener la misma versión.
+
+## Queries distribuídos
+
+En el caso que la base de datos se encuentra distribuida en multiples regiones y la informacion se encuentra fragmentada la construccion de queries debe tener un debido nivel de analisis.
+
+Debido a que en una sola base de datos responder una misma pregunta puede tener multiples soluciones con diferencias de ejecuccion en el rango de milisegundos.
+Pero en las bases de datos distribuidas dependiendo de en donde se encuentre la informacion fisicamente, que informacion hay en cada region y que pregunta se quiere contestar, las diferentes formas de resolver la pregunta mediante una consulta SQL puede tener vastas diferencias en el tiempo de ejecucion,como ejemplo algunas soluciones pudiesen llegar al rango de 5 horas para ejecutarse y otras solamente necesitando 0.10 segundos.
+
+## Sharding
+
+Es un tipo de partición horizontal para nuestras bases de datos. Divide las tuplas de nuestras tablas en diferentes ubicaciones de acuerdo a ciertos criterios de modo que para hacer consultas, las tendremos que dirigir al shard o parte que corresponda.
+
+### Cuándo usar
+
+Cuando tenemos grandes volúmenes de información estática que representa un problema para obtener solo unas cuantas tuplas en consultas frecuentes.
+
+### Inconvenientes
+
+Cuando debamos hacer joins frecuentemente entre shards
+Baja elasticidad. Los shards crecen de forma irregular unos más que otros y vuelve a ser necesario usar sharding (subsharding)
+La llave primaria pierde utilidad
+
+## Window functions
+
+### ¿Qué son?
+
+Realizan cálculos en algunas tuplas que se encuentran relacionadas con la tupla actual.
+
+### ¿Para que sirven?
+
+Evitan el uso de self joins y reduce la complejidad alrededor de la analítica, agregaciones y uso de cursores.
+
+```sql
+SELECT *,
+  AVG(colegiatura) OVER(PARTITION BY carrera_id)
+FROM alumnos;
+
+
+SELECT *,
+  AVG(colegiatura) OVER()
+FROM alumnos;
+
+SELECT *,
+  SUM(colegiatura) OVER(ORDER BY colegiatura)
+FROM alumnos;
+
+
+SELECT *,
+  SUM(colegiatura) OVER(PARTITION BY carrera_id ORDER BY colegiatura)
+FROM alumnos;
+
+
+SELECT *,
+  RANK() OVER(PARTITION BY carrera_id ORDER BY colegiatura DESC) AS brand_rank
+FROM alumnos
+ORDER BY carrera_id, brand_rank;
+
+
+SELECT *,
+  RANK() OVER(PARTITION BY carrera_id ORDER BY colegiatura DESC) AS brand_rank
+FROM alumnos
+-- WHERE brand_rank < 3
+ORDER BY carrera_id, brand_rank;
+
+
+SELECT *
+FROM (
+  SELECT *,
+  RANK() OVER(PARTITION BY carrera_id ORDER BY colegiatura DESC) AS brand_rank
+  FROM alumnos
+) AS colegiatura_por_carrera
+WHERE brand_rank < 3
+ORDER BY carrera_id, brand_rank;
+```
+
+## Particiones y agregación
+
+```sql
+SELECT ROW_NUMBER() OVER() AS row_id, *
+FROM alumnos;
+
+
+SELECT ROW_NUMBER() OVER(ORDER BY fecha_incorporacion) AS row_id, *
+FROM alumnos;
+
+
+SELECT FIRST_VALUE(colegiatura) OVER(PARTITION BY carrera_id) AS primera_colegiatura, *
+FROM alumnos;
+
+
+SELECT LAST_VALUE(colegiatura) OVER(PARTITION BY carrera_id) AS ultima_colegiatura, *
+FROM alumnos;
+
+
+SELECT NTH_VALUE(colegiatura, 3) OVER(PARTITION BY carrera_id) AS ultima_colegiatura, *
+FROM alumnos;
+
+
+SELECT *,
+  RANK() OVER(PARTITION BY carrera_id ORDER BY colegiatura DESC) AS colegiatura_rank
+FROM alumnos
+ORDER BY carrera_id, colegiatura_rank;
+
+
+SELECT *,
+  DENSE_RANK() OVER(PARTITION BY carrera_id ORDER BY colegiatura DESC) AS colegiatura_rank
+FROM alumnos
+ORDER BY carrera_id, colegiatura_rank;
+
+
+-- (rank - 1) / (total_rows - 1)
+SELECT *,
+  PERCENT_RANK() OVER(PARTITION BY carrera_id ORDER BY colegiatura DESC) AS colegiatura_rank
+FROM alumnos
+ORDER BY carrera_id, colegiatura_rank;
+```
+
+- ROW_NUMBER(): nos da el numero de la tupla que estamos utilizando en ese momento.
+- OVER([PARTITION BY column] [ORDER BY column DIR]): nos deja Particionar y Ordenar la window function.
+- PARTITION BY(column/s): es un group by para la window function, se coloca dentro de OVER.
+- FIRST_VALUE(column): devuelve el primer valor de una serie de datos.
+- LAST_VALUE(column): Devuelve el ultimo valor de una serie de datos.
+- NTH_VALUE(column, row_number): Recibe la columna y el numero de row que queremos devolver de una serie de datos
+- RANK(): nos dice el lugar que ocupa de acuerdo a el orden de cada tupla, deja gaps entre los valores.
+- DENSE_RANK(): Es un rango mas denso que trata de eliminar los gaps que nos deja RANK.
+- PERCENT_RANK(): Categoriza de acuerdo a lugar que ocupa igual que los anteriores pero por porcentajes
+
+## El futuro de SQL
+
