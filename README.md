@@ -1510,3 +1510,19 @@ ORDER BY carrera_id, colegiatura_rank;
 ## El futuro de SQL
 
 SQL como lenguaje tiene un  gran futuro por delante y nuevos manejadores de bases de datos utilizan un lenguage similar al SQL por lo cual aprender SQL sigue siendo fundamental en la peticion de datos.
+
+## Integridad de datos
+
+- [integridad de datos conceptos](https://es.wikipedia.org/wiki/Integridad_de_datos#:~:text=El%20t%C3%A9rmino%20integridad%20de%20datos,perderse%20de%20muchas%20maneras%20diferentes.)
+- [Data integrity](https://en.wikipedia.org/wiki/Data_integrity)
+
+
+- Integridad de dominio: La integridad de dominio es la validez de las restricciones que debe cumplir una determinada columna de la tabla.
+Datos Requeridos: establece que una columna tenga un valor no NULL. Se define efectuando la declaración de una columna es NOT NULL cuando la tabla que contiene las columnas se crea por primera vez, como parte de la sentencia CREATE TABLE.
+Chequeo de Validez: cuando se crea una tabla cada columna tiene un tipo de datos y el DBMS asegura que solamente los datos del tipo especificado sean ingresados en la tabla.
+- Integridad de entidad: establece que la clave primaria de una tabla debe tener un valor único para cada fila de la tabla; si no, la base de datos perderá su integridad. Se especifica en la sentencia CREATE TABLE. El DBMS comprueba automáticamente la unicidad del valor de la clave primaria con cada sentencia INSERT Y UPDATE. Un intento de insertar o actualizar una fila con un valor de la clave primaria ya existente fallará.
+- Integridad referencial: asegura la integridad entre las llaves foráneas y primarias (relaciones padre/hijo). Existen cuatro actualizaciones de la base de datos que pueden corromper la integridad referencial:
+  La inserción de una fila hijo se produce cuando no coincide la llave foránea con la llave primaria del padre.
+  La actualización en la llave foránea de la fila hijo, donde se produce una actualización en la clave ajena de la fila hijo con una sentencia UPDATE y la misma no coincide con ninguna llave primaria.
+  La supresión de una fila padre, con la que, si una fila padre -que tiene uno o más hijos- se suprime, las filas hijos quedarán huérfanas.
+  La actualización de la clave primaria de una fila padre, donde si en una fila padre, que tiene uno o más hijos se actualiza su llave primaria, las filas hijos quedarán huérfanas.
